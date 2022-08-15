@@ -1,8 +1,8 @@
 # Configure the AWS Provider
 provider "aws" {
   region     = "us-east-1"
-  access_key = "AKIAZ35BHA2WUCDXMR4D"
-  secret_key = "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"
+  access_key = "Aws_acess_key"
+  secret_key = "aws_seceret_key"
 }
 
 # 1. create custom vpc for ec2
