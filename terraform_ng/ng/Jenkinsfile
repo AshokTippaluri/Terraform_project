@@ -1,7 +1,8 @@
 pipeline {
     agent any
+    
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id') 
+        AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
         AWS_DEFAULT_REGION    = 'us-east-1'
     }
@@ -22,10 +23,9 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                dir('terraform_ng/ng') { // Change to the Terraform working directory
+                dir('terraform_ng/ng') {
                     sh '''
                         echo "Current directory: $(pwd)"
-                        ls -al
                         terraform init -input=false
                     '''
                 }
@@ -55,13 +55,14 @@ pipeline {
                 }
             }
         }
-        stage('Terraform Destroy') {
-           steps {
-                dir('terraform_ng/ng') {
-                    sh 'terraform Destroy -auto-approve tfplan'
-                }
-            }
-        }
+
+        // stage('Terraform Destroy') {
+        //     steps {
+        //         dir('terraform_ng/ng') {
+        //             sh 'terraform destroy -auto-approve'
+        //         }
+        //     }
+        // }
     }
 
     post {
@@ -73,39 +74,7 @@ pipeline {
         }
         always {
             echo "Cleaning up workspace..."
-            cleanWs() // Clean the workspace after the build
+            cleanWs()
         }
     }
 }
-
-
-
-// pipeline {
-//     agent any
-//     environment {
-//         AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
-//         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
-//         AWS_DEFAULT_REGION    = 'us-east-1'
-//     }
-//       stages {
-//         stage('Checkout') {
-//             steps {
-//                 git branch: 'master', url: 'https://github.com/AshokTippaluri/Terraform_project.git'
-//             }
-//         }
-//         stage('Terraform init') {
-//             steps {
-//                 sh 'pwd'
-//                 dir ( '/var/lib/jenkins/workspace/terraform_ng/terraform_ng/ng' ) {
-//                 sh 'pwd && ls -al'
-//                 sh 'terraform init' }
-//             }
-//         }
-//         stage('validate') {
-//             steps {
-//                 sh 'terraform validate'
-//                 sh 'terraform plan'
-//             }
-//         }
-//       }
-// }
