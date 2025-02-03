@@ -1,29 +1,111 @@
 pipeline {
     agent any
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
+        AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id') 
         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
         AWS_DEFAULT_REGION    = 'us-east-1'
     }
-      stages {
-        stage('Checkout') {
+
+    stages {
+        stage('Checkout SCM') {
             steps {
-                git branch: 'master', url: 'https://github.com/AshokTippaluri/Terraform_project.git'
+                checkout scm: [
+                    $class: 'GitSCM',
+                    branches: [[name: 'master']],
+                    userRemoteConfigs: [[url: 'https://github.com/AshokTippaluri/Terraform_project.git']]
+                ]
+                script {
+                    echo "Checked out the Terraform project from GitHub."
+                }
             }
         }
-        stage('Terraform init') {
+
+        stage('Terraform Init') {
             steps {
-                sh 'pwd'
-                sh 'cd /var/lib/jenkins/workspace/terraform_ng/terraform_ng/ng'
-                sh 'pwd && ls -al'
-                sh 'terraform init'
+                dir('terraform_ng/ng') { // Change to the Terraform working directory
+                    sh '''
+                        echo "Current directory: $(pwd)"
+                        ls -al
+                        terraform init -input=false
+                    '''
+                }
             }
         }
-        stage('validate') {
+
+        stage('Terraform Validate') {
             steps {
-                sh 'terraform validate'
-                sh 'terraform plan'
+                dir('terraform_ng/ng') {
+                    sh 'terraform validate'
+                }
             }
         }
-      }
+
+        stage('Terraform Plan') {
+            steps {
+                dir('terraform_ng/ng') {
+                    sh 'terraform plan -out=tfplan'
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            steps {
+                dir('terraform_ng/ng') {
+                    sh 'terraform apply -auto-approve tfplan'
+                }
+            }
+        }
+        stage('Terraform Destroy') {
+           steps {
+                dir('terraform_ng/ng') {
+                    sh 'terraform Destroy -auto-approve tfplan'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline succeeded! Terraform infrastructure deployed successfully."
+        }
+        failure {
+            echo "Pipeline failed! Check the logs for errors."
+        }
+        always {
+            echo "Cleaning up workspace..."
+            cleanWs() // Clean the workspace after the build
+        }
+    }
 }
+
+
+
+// pipeline {
+//     agent any
+//     environment {
+//         AWS_ACCESS_KEY_ID     = credentials('aws_access_key_id')
+//         AWS_SECRET_ACCESS_KEY = credentials('aws_secret_access_key')
+//         AWS_DEFAULT_REGION    = 'us-east-1'
+//     }
+//       stages {
+//         stage('Checkout') {
+//             steps {
+//                 git branch: 'master', url: 'https://github.com/AshokTippaluri/Terraform_project.git'
+//             }
+//         }
+//         stage('Terraform init') {
+//             steps {
+//                 sh 'pwd'
+//                 dir ( '/var/lib/jenkins/workspace/terraform_ng/terraform_ng/ng' ) {
+//                 sh 'pwd && ls -al'
+//                 sh 'terraform init' }
+//             }
+//         }
+//         stage('validate') {
+//             steps {
+//                 sh 'terraform validate'
+//                 sh 'terraform plan'
+//             }
+//         }
+//       }
+// }
