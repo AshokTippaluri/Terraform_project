@@ -15,6 +15,7 @@ pipeline {
             steps {
                 sh 'pwd'
                 sh 'cd terraform_ng/ng/'
+                sh 'pwd && ls -al'
                 sh 'terraform init'
             }
         }
