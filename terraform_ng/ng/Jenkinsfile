@@ -12,7 +12,7 @@ pipeline {
             steps {
                 checkout scm: [
                     $class: 'GitSCM',
-                    branches: [[name: 'master']],
+                    branches: [[name: 'destroy']],
                     userRemoteConfigs: [[url: 'https://github.com/AshokTippaluri/Terraform_project.git']]
                 ]
                 script {
