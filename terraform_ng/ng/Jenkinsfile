@@ -13,13 +13,15 @@ pipeline {
         }
         stage('Terraform init') {
             steps {
+                sh 'pwd'
+                sh 'cd terraform_ng/ng/'
                 sh 'terraform init'
             }
         }
-        stage('Plan') {
+        stage('validate') {
             steps {
-                sh 'terraform plan -out tfplan'
-                sh 'terraform show -no-color tfplan > tfplan.txt'
+                sh 'terraform validate'
+                sh 'terraform plan'
             }
         }
       }
