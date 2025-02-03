@@ -14,7 +14,7 @@ pipeline {
         stage('Terraform init') {
             steps {
                 sh 'pwd'
-                sh 'cd terraform_ng/ng/'
+                sh 'cd /var/lib/jenkins/workspace/terraform_ng/terraform_ng/ng'
                 sh 'pwd && ls -al'
                 sh 'terraform init'
             }
