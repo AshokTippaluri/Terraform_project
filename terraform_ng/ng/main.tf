@@ -14,7 +14,7 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "aws_bucket_resources" {
-  bucket = "ashok-s3-test-bucket-123"
+  bucket = "ashok-s3-test-bucket-1234"
 
   tags = {
     Name        = "My first bucket"
