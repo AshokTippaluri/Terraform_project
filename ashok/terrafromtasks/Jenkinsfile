@@ -1,0 +1,63 @@
+pipeline {
+    agent {
+        node {
+            label 'ue1pr1utility'
+        }
+    }
+
+    stages {
+        stage('Workspace') {
+            steps {
+                withAWS(credentials:'dev-it-programmatic-user') {
+                    echo "workspace is ${workspace}"
+                    sh 'terraform init -backend=true -input=false -reconfigure'
+                    sh "terraform workspace select -or-create ${workspace}"
+                }
+            }
+        }
+
+        stage('Plan') {
+            steps {
+                withAWS(credentials:'dev-it-programmatic-user') {
+                    sh "terraform plan -input=false -out tfplan "
+                    sh 'terraform show -no-color tfplan > tfplan.txt'
+                }
+            }
+        }
+
+        stage('Approval') {
+            when {
+                expression {
+                    params.workspace == 'production'
+                }
+            }
+
+            steps {
+                withAWS(credentials:'dev-it-programmatic-user') {
+                    script {
+                        def plan = readFile 'tfplan.txt'
+                        input message: "Do you want to apply the plan?",
+                        parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    }
+                }
+            }
+        }
+
+        stage('Apply') {
+            steps {
+                withAWS(credentials:'dev-it-programmatic-user') {
+                    sh "terraform apply -input=false tfplan"
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            slackSend channel: 'C071H38PRH8', message: "FAILURE:  BUILD_TAG: ${BUILD_TAG}, BUILD_ID: ${BUILD_ID}, BUILD_URL: $BUILD_URL"
+        }
+        success {
+            slackSend channel: 'C071H38PRH8', message: "SUCCESS:  BUILD_TAG: ${BUILD_TAG}, BUILD_ID: ${BUILD_ID}"
+        }
+    }
+}
